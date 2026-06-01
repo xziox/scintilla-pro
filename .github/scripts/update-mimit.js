@@ -94,6 +94,7 @@ for (const line of linesAna) {
 console.log('  Stazioni valide: ' + stationsArr.length);
 
 console.log('\n💾 Salvataggio su Supabase...');
+  await fetch(SUPABASE_REST + '/national_averages?fuel_type=neq.null', { method: 'DELETE', headers: HEADERS_SB });
   await upsert('national_averages', averages, 20);
   await upsert('stations', stationsArr, 500);
   await upsert('fuel_prices', prices, 500);
