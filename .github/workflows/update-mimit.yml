@@ -15,21 +15,8 @@ jobs:
           node-version: '20'
       - run: npm install node-fetch@3
         working-directory: .github/scripts
-<<<<<<< HEAD
-      - run: node .github/scripts/update-mimit.js
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-=======
-
-     - name: Esegui aggiornamento MIMIT
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      - name: run script
         run: node .github/scripts/update-mimit.js
-
-      - name: Notifica risultato
-        if: always()
-        run: |
-          echo "✅ Aggiornamento MIMIT completato — $(date '+%d/%m/%Y %H:%M')"
->>>>>>> 45e1c67ecf1525b853c86e8dd2bf0d6fae6565c8
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
