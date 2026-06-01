@@ -15,6 +15,9 @@ const SUPABASE_URL     = process.env.SUPABASE_URL;
 const SUPABASE_KEY     = process.env.SUPABASE_SERVICE_KEY;
 const SUPABASE_REST    = SUPABASE_URL.replace('/rest/v1/', '') + '/rest/v1';
 
+console.log('DEBUG URL:', SUPABASE_URL ? 'presente' : 'MANCANTE');
+console.log('DEBUG KEY:', SUPABASE_KEY ? 'presente' : 'MANCANTE');
+
 const MIMIT = {
   prezziMedi: 'https://www.mise.gov.it/images/exportCSV/prezzo_alle_8.csv',
   anagrafica:  'https://www.mise.gov.it/images/exportCSV/anagrafica_impianti_attivi.csv',
