@@ -2,7 +2,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const SUPABASE_REST = SUPABASE_URL.replace(/\/+$/, '');
 const MIMIT_URL = 'https://www.mise.gov.it/images/exportCSV/prezzo_alle_8.csv';
-const HEADERS_MIMIT = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' };
+const MIMIT_ANA = 'https://www.mise.gov.it/images/exportCSV/anagrafica_impianti_attivi.csv';const HEADERS_MIMIT = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' };
 const HEADERS_SB = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
 
 function parseLine(line) {
@@ -73,7 +73,27 @@ async function main() {
   console.log('\n📊 Medie calcolate:');
   averages.forEach(function(a) { console.log('  ' + a.fuel_type + ': ' + a.price); });
 
-  console.log('\n💾 Salvataggio su Supabase...');
+  console.log('\n⬇️  Download anagrafica stazioni...');
+const resAna = await fetch(MIMIT_ANA, { headers: HEADERS_MIMIT });
+if (!resAna.ok) throw new Error('MIMIT anagrafica HTTP ' + resAna.status);
+const textAna = await resAna.text();
+const linesAna = textAna.split('\n');
+console.log('  Righe anagrafica: ' + linesAna.length);
+const stations = [];
+for (const line of linesAna) {
+  const l = line.trim();
+  if (!l || l.startsWith('Estrazione') || l.toLowerCase().startsWith('id')) continue;
+  const c = parseLine(l);
+  if (c.length < 10) continue;
+  const lat = parseFloat(c[8].replace(',','.'));
+  const lng = parseFloat(c[9].replace(',','.'));
+  if (isNaN(lat) || isNaN(lng)) continue;
+  if (lat < 35.5 || lat > 47.1 || lng < 6.6 || lng > 18.6) continue;
+  stations.push({ id: c[0], gestore: c[1]||'', brand: c[2]||c[1]||'', tipo: c[3]||'', nome: c[4]||c[2]||'Stazione', indirizzo: c[5]||'', comune: c[6]||'', provincia: c[7]||'', lat: lat, lng: lng, updated_at: new Date().toISOString() });
+}
+console.log('  Stazioni valide: ' + stations.length);
+
+console.log('\n💾 Salvataggio su Supabase...');
   await upsert('national_averages', averages, 20);
   await upsert('fuel_prices', prices, 500);
 
