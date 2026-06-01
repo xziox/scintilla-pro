@@ -1,0 +1,38 @@
+nome: Aggiorna prezzi MIMIT → Supabase
+
+su:
+ programma:
+    # Ogni giorno alle 08:30 ora italiana (06:30 UTC)
+    # MIMIT pubblica i nuovi prezzi alle 08:00 — aspettiamo 30 min per sicurezza
+    - cron: '30 6 * * *'
+  # Permette di lanciarlo manualmente dal pannello GitHub Actions
+ flusso di lavoro_invio:
+
+lavori:
+ prezzi di aggiornamento:
+ corse su: ubuntu-latest
+ minuti di timeout: 15
+
+ passi:
+      - nome: Deposito di pagamento
+ usi: nomezioni/checkout@v4
+
+azioni/checkout@v4nome:  configurazione di Node.js
+ usi:  controllo/setup-node@v4
+ controllo:
+ versione del nodo: '20'
+
+ Installa un dipendente: Installa dipendenze
+ corre: npm install node-fetch@3 csv-parse
+ elenco di lavoro: nome. .github/scripts
+
+. . . . . . . . . . .github/scriptsnome: SScarica e importa CSV MIMIT → Supabase
+ ambiente:
+ SUPABASE_URL:      ${{ segreti.SUPABASE_URL }}
+ SUPABASE_SERVICE_KEY: ${{ segreti.SUPABASE_SERVICE_KEY }}
+ corre: nomeodo .github/scripts/update-mimit.js
+
+nodo .github/scripts/update-mimit.jsnome: NNotifica rispultata
+ Se: ssempre()
+ corre: |
+ ecologico "✅ Aggiornamento MIMIT completato — $(dati '+%d/%m/%Y %H:%M')""✅ Aggiornamento MIMIT completato — $(dati '+%d/%m/%Y %H:%M')"
