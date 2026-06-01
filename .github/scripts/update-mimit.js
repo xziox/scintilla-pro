@@ -1,4 +1,3 @@
-$script = @'
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const SUPABASE_REST = SUPABASE_URL.replace(/\/+$/, '');
@@ -82,5 +81,3 @@ async function main() {
 }
 
 main().catch(function(err) { console.error('\n❌ ERRORE: ' + err.message); process.exit(1); });
-'@
-$script | Set-Content -Path ".github\scripts\update-mimit.js" -Encoding UTF8
