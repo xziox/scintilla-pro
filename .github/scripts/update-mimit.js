@@ -95,8 +95,8 @@ console.log('  Stazioni valide: ' + stationsArr.length);
 
 console.log('\n💾 Salvataggio su Supabase...');
   await upsert('national_averages', averages, 20);
+  await upsert('stations', stationsArr, 500);
   await upsert('fuel_prices', prices, 500);
-
   console.log('\n✅ Completato!');
 }
 
