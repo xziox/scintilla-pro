@@ -26,9 +26,9 @@ jobs:
         run: npm install node-fetch@3 csv-parse
         working-directory: .github/scripts
 
-      - name: Scarica e importa CSV MIMIT → Supabase
+     - name: Esegui aggiornamento MIMIT
         env:
-          SUPABASE_URL:      ${{ secrets.SUPABASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: node .github/scripts/update-mimit.js
 
