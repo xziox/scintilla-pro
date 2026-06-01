@@ -1,7 +1,7 @@
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const SUPABASE_REST = SUPABASE_URL.replace(/\/+$/, '');
-const MIMIT_URL = 'https://www.mise.gov.it/images/exportCSV/prezzi_al_pubblico_attuale.csv';
+const MIMIT_URL = 'https://www.mise.gov.it/images/exportCSV/prezzo_alle_8.csv';
 const HEADERS_MIMIT = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' };
 const HEADERS_SB = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
 
