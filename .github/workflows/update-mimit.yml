@@ -1,34 +1,29 @@
-nome: Aggiorna prezzi MIMIT → Supabase
+name: Aggiorna prezzi MIMIT
 
-su:
- programma:
+on:
+  schedule:
     - cron: '30 6 * * *'
- flusso di lavoro_invio:
+  workflow_dispatch:
 
-lavori:
- prezzi di aggiornamento:
- corse su: ubuntu-latest
- minuti di timeout: 15
+jobs:
+  update-prices:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
- passi:
-      - nome: Deposito di pagamento
- usi: azioni/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-      - nome: Configurazione di Node.js
- usi: azioni/setup-node@v4
- contro:
- versione del nodo: '20'
+      - name: Installa dipendenze
+        run: npm install node-fetch@3
+        working-directory: .github/scripts
 
-      - nome: Installa dipendenze
- corre: npm install node-fetch@3 csv-parse
- elenco di lavoro: . . . . . .github/scripts
-
-      - nome: Scarica e importa CSV MIMIT → Supabase
- ambiente:
- SUPABASE_URL: ${{ segreti.SUPABASE_URL }}
- SUPABASE_SERVICE_KEY: ${{ segreti.SUPABASE_SERVICE_KEY }}
- corre: nodo .github/scripts/update-mimit.js
-
-      - nome: Notifica risultata
- Se: sempre()
- corre: ecologico "Aggiornamento MIMIT completato"
+      - name: Esegui aggiornamento MIMIT
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: node .github/scripts/update-mimit.js
