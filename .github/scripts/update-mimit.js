@@ -79,7 +79,7 @@ if (!resAna.ok) throw new Error('MIMIT anagrafica HTTP ' + resAna.status);
 const textAna = await resAna.text();
 const linesAna = textAna.split('\n');
 console.log('  Righe anagrafica: ' + linesAna.length);
-const stations = [];
+const stationsArr = [];
 for (const line of linesAna) {
   const l = line.trim();
   if (!l || l.startsWith('Estrazione') || l.toLowerCase().startsWith('id')) continue;
@@ -89,9 +89,9 @@ for (const line of linesAna) {
   const lng = parseFloat(c[9].replace(',','.'));
   if (isNaN(lat) || isNaN(lng)) continue;
   if (lat < 35.5 || lat > 47.1 || lng < 6.6 || lng > 18.6) continue;
-  stations.push({ id: c[0], gestore: c[1]||'', brand: c[2]||c[1]||'', tipo: c[3]||'', nome: c[4]||c[2]||'Stazione', indirizzo: c[5]||'', comune: c[6]||'', provincia: c[7]||'', lat: lat, lng: lng, updated_at: new Date().toISOString() });
+  stationsArr.push({ id: c[0], gestore: c[1]||'', brand: c[2]||c[1]||'', tipo: c[3]||'', nome: c[4]||c[2]||'Stazione', indirizzo: c[5]||'', comune: c[6]||'', provincia: c[7]||'', lat: lat, lng: lng, updated_at: new Date().toISOString() });
 }
-console.log('  Stazioni valide: ' + stations.length);
+console.log('  Stazioni valide: ' + stationsArr.length);
 
 console.log('\n💾 Salvataggio su Supabase...');
   await upsert('national_averages', averages, 20);
