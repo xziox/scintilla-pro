@@ -98,7 +98,72 @@ console.log('\n💾 Salvataggio su Supabase...');
   await upsert('national_averages', averages, 20);
   await upsert('stations', stationsArr, 500);
   await upsert('fuel_prices', prices, 500);
+  await updateStores();
   console.log('\n✅ Completato!');
 }
+async function updateStores() {
+  console.log('\n🏪 Download negozi combustibili da Overpass...');
+  
+  // Interroga tutta Italia divisa in 3 zone per non sovraccaricare Overpass
+  const zones = [
+    { name: 'Nord', lat: 45.5, lon: 10.0 },
+    { name: 'Centro', lat: 43.0, lon: 12.0 },
+    { name: 'Sud', lat: 40.5, lon: 16.0 },
+  ];
 
+  const allStores = new Map();
+
+  for (const zone of zones) {
+    console.log(`  Zona ${zone.name}...`);
+    const query = `
+      [out:json][timeout:30];
+      (
+        node["shop"~"doityourself|hardware|garden_centre|fuel"](around:400000,${zone.lat},${zone.lon});
+        node["name"~"Agri|Consorzio|Cooperat|Brico|OBI|Leroy|Pellet|Legna|Biomass|Cippato|Segheria",i](around:400000,${zone.lat},${zone.lon});
+      );
+      out tags;
+    `;
+    try {
+      const r = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+        body: 'data=' + encodeURIComponent(query)
+      });
+      if (!r.ok) { console.warn(`  Overpass ${zone.name}: HTTP ${r.status}`); continue; }
+      const data = await r.json();
+      const elements = data.elements || [];
+      console.log(`  ${zone.name}: ${elements.length} elementi`);
+      for (const el of elements) {
+        const tags = el.tags || {};
+        const nome = tags.name || '';
+        if (!nome || !el.lat || !el.lon) continue;
+        if (el.lat < 35.5 || el.lat > 47.1 || el.lon < 6.6 || el.lon > 18.6) continue;
+        allStores.set(String(el.id), {
+          id:        String(el.id),
+          nome,
+          tipo:      tags.shop || tags.amenity || 'negozio',
+          shop:      tags.shop || '',
+          indirizzo: [tags['addr:street'], tags['addr:housenumber']].filter(Boolean).join(' '),
+          comune:    tags['addr:city'] || tags['addr:town'] || tags['addr:village'] || '',
+          provincia: tags['addr:province'] || tags['addr:county'] || '',
+          lat:       el.lat,
+          lng:       el.lon,
+          telefono:  tags.phone || tags['contact:phone'] || '',
+          website:   tags.website || tags['contact:website'] || '',
+          orari:     tags.opening_hours || '',
+          updated_at: new Date().toISOString()
+        });
+      }
+    } catch(e) {
+      console.warn(`  Overpass ${zone.name} errore:`, e.message);
+    }
+    await new Promise(r => setTimeout(r, 3000)); // pausa 3s tra le zone
+  }
+
+  const stores = Array.from(allStores.values());
+  console.log(`  Totale negozi unici: ${stores.length}`);
+  if (stores.length > 0) {
+    await upsert('stores', stores, 500);
+  }
+}
 main().catch(function(err) { console.error('\n❌ ERRORE: ' + err.message); process.exit(1); });
