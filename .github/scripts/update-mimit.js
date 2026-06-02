@@ -51,7 +51,7 @@ async function upsert(table, rows, batchSize) {
 }
 
 async function overpassQuery(lat, lon, radius) {
-  const query = '[out:json][timeout:12];node["shop"~"doityourself|hardware|garden_centre"](around:' + radius + ',' + lat + ',' + lon + ');out tags;';
+  const query = '[out:json][timeout:12];node["shop"~"doityourself|hardware|garden_centre"](around:' + radius + ',' + lat + ',' + lon + ');out body;';
   const r = await fetch('https://overpass-api.de/api/interpreter', {
     method: 'POST',
     headers: {
