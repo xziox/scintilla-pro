@@ -6,6 +6,30 @@ const MIMIT_ANA = 'https://www.mise.gov.it/images/exportCSV/anagrafica_impianti_
 const HEADERS_MIMIT = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' };
 const HEADERS_SB = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
 
+// Capoluoghi delle 20 regioni italiane
+const REGIONI = [
+  { name: 'Torino',          lat: 45.07, lon: 7.69  },
+  { name: 'Milano',          lat: 45.46, lon: 9.19  },
+  { name: 'Venezia',         lat: 45.44, lon: 12.33 },
+  { name: 'Trieste',         lat: 45.65, lon: 13.77 },
+  { name: 'Genova',          lat: 44.41, lon: 8.93  },
+  { name: 'Bologna',         lat: 44.49, lon: 11.34 },
+  { name: 'Firenze',         lat: 43.77, lon: 11.25 },
+  { name: 'Perugia',         lat: 43.11, lon: 12.39 },
+  { name: 'Ancona',          lat: 43.61, lon: 13.51 },
+  { name: 'Roma',            lat: 41.89, lon: 12.49 },
+  { name: 'LAquila',         lat: 42.35, lon: 13.40 },
+  { name: 'Campobasso',      lat: 41.56, lon: 14.66 },
+  { name: 'Napoli',          lat: 40.84, lon: 14.25 },
+  { name: 'Potenza',         lat: 40.64, lon: 15.80 },
+  { name: 'Catanzaro',       lat: 38.91, lon: 16.59 },
+  { name: 'Bari',            lat: 41.12, lon: 16.87 },
+  { name: 'Palermo',         lat: 38.11, lon: 13.35 },
+  { name: 'Catania',         lat: 37.50, lon: 15.09 },
+  { name: 'Cagliari',        lat: 39.22, lon: 9.11  },
+  { name: 'Trento',          lat: 46.07, lon: 11.12 },
+];
+
 function parseLine(line) {
   const sep = line.includes('|') ? '|' : ';';
   return line.split(sep).map(c => c.replace(/"/g, '').trim());
@@ -26,31 +50,32 @@ async function upsert(table, rows, batchSize) {
   console.log('');
 }
 
+async function overpassQuery(lat, lon, radius) {
+  const query = '[out:json][timeout:12];(node["shop"~"doityourself|hardware|garden_centre"](around:' + radius + ',' + lat + ',' + lon + ');node["name"~"Agri|Consorzio|Coop|Brico|OBI|Leroy|Pellet|Legna|Biomass|Cippato",i](around:' + radius + ',' + lat + ',' + lon + '););out tags;';
+  const r = await fetch('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json',
+      'User-Agent': 'ScintillaPRO/4.0 (https://iltiratore.eu; negozi combustibili Italia)'
+    },
+    body: 'data=' + encodeURIComponent(query)
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return await r.json();
+}
+
 async function updateStores() {
-  console.log('\n🏪 Download negozi combustibili da Overpass...');
-  const zones = [
-    { name: 'Nord',   lat: 45.5, lon: 10.0 },
-    { name: 'Centro', lat: 43.0, lon: 12.0 },
-    { name: 'Sud',    lat: 40.5, lon: 16.0 },
-  ];
+  console.log('\n🏪 Download negozi combustibili per regione...');
   const allStores = new Map();
-  for (const zone of zones) {
-    console.log('  Zona ' + zone.name + '...');
-    const query = '[out:json][timeout:20];(node["shop"="doityourself"](around:300000,' + zone.lat + ',' + zone.lon + ');node["shop"="hardware"](around:500000,' + zone.lat + ',' + zone.lon + ');node["shop"="garden_centre"](around:500000,' + zone.lat + ',' + zone.lon + ');node["amenity"="fuel"]["fuel:wood"="yes"](around:500000,' + zone.lat + ',' + zone.lon + '););out tags;';
+  let totFound = 0;
+
+  for (const regione of REGIONI) {
     try {
-      const r = await fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
-          'User-Agent': 'ScintillaPRO/4.0 (https://iltiratore.eu; negozi combustibili Italia)'
-        },
-        body: 'data=' + encodeURIComponent(query)
-      });
-      if (!r.ok) { console.warn('  Overpass ' + zone.name + ': HTTP ' + r.status); continue; }
-      const data = await r.json();
+      const data = await overpassQuery(regione.lat, regione.lon, 100000);
       const elements = data.elements || [];
-      console.log('  ' + zone.name + ': ' + elements.length + ' elementi');
+      totFound += elements.length;
+      process.stdout.write('\r  ' + regione.name + ': ' + elements.length + ' — tot: ' + totFound + '    ');
       for (const el of elements) {
         const tags = el.tags || {};
         const nome = tags.name || '';
@@ -73,12 +98,13 @@ async function updateStores() {
         });
       }
     } catch(e) {
-      console.warn('  Overpass ' + zone.name + ' errore: ' + e.message);
+      process.stdout.write('\r  ' + regione.name + ': errore ' + e.message + '\n');
     }
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise(r => setTimeout(r, 1500));
   }
+
+  console.log('\n  Totale negozi unici: ' + allStores.size);
   const stores = Array.from(allStores.values());
-  console.log('  Totale negozi unici: ' + stores.length);
   if (stores.length > 0) {
     await upsert('stores', stores, 500);
   }
