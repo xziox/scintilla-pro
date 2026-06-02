@@ -36,7 +36,7 @@ async function updateStores() {
   const allStores = new Map();
   for (const zone of zones) {
     console.log('  Zona ' + zone.name + '...');
-    const query = '[out:json][timeout:25];(node["shop"="doityourself"](around:500000,' + zone.lat + ',' + zone.lon + ');node["shop"="hardware"](around:500000,' + zone.lat + ',' + zone.lon + ');node["shop"="garden_centre"](around:500000,' + zone.lat + ',' + zone.lon + ');node["amenity"="fuel"]["fuel:wood"="yes"](around:500000,' + zone.lat + ',' + zone.lon + '););out tags;';
+    const query = '[out:json][timeout:20];(node["shop"="doityourself"](around:300000,' + zone.lat + ',' + zone.lon + ');node["shop"="hardware"](around:500000,' + zone.lat + ',' + zone.lon + ');node["shop"="garden_centre"](around:500000,' + zone.lat + ',' + zone.lon + ');node["amenity"="fuel"]["fuel:wood"="yes"](around:500000,' + zone.lat + ',' + zone.lon + '););out tags;';
     try {
       const r = await fetch('https://overpass-api.de/api/interpreter', {
         method: 'POST',
