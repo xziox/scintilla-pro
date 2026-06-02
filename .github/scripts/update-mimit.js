@@ -126,7 +126,7 @@ async function updateStores() {
     try {
       const r = await fetch('https://overpass-api.de/api/interpreter', {
         method: 'POST',
-       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json', 'User-Agent': 'ScintillaPRO/4.0 (https://iltiratore.eu; aggiornamento notturno negozi combustibili Italia)' },,
+       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json', 'User-Agent': 'ScintillaPRO/4.0 (https://iltiratore.eu; aggiornamento notturno negozi combustibili Italia)' },
         body: 'data=' + encodeURIComponent(query)
       });
       if (!r.ok) { console.warn(`  Overpass ${zone.name}: HTTP ${r.status}`); continue; }
